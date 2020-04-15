@@ -65,7 +65,7 @@ int main(int argc, const char* argv[]) {
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI"; // -> SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
+        string detectorType = "SIFT"; // -> SHITOMASI, HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
         if (detectorType.compare("SHITOMASI") == 0) {
             detKeypointsShiTomasi(keypoints, imgGray, false);
@@ -108,12 +108,8 @@ int main(int argc, const char* argv[]) {
 
         /* EXTRACT KEYPOINT DESCRIPTORS */
 
-        //// STUDENT ASSIGNMENT
-        //// TASK MP.4 -> add the following descriptors in file matching2D.cpp and enable string-based selection based on descriptorType
-        //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
-
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "SIFT"; // BRISK, BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints(dataBuffer.back().keypoints, dataBuffer.back()._cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
