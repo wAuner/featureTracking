@@ -53,7 +53,8 @@ void matchDescriptors(std::vector<cv::KeyPoint>& kPtsSource, std::vector<cv::Key
 }
 
 // Use one of several types of state-of-art descriptors to uniquely identify keypoints
-void descKeypoints(vector<cv::KeyPoint>& keypoints, cv::Mat& img, cv::Mat& descriptors, string descriptorType) {
+// returns the time it took to extract the keypoint descriptors in milliseconds
+double descKeypoints(vector<cv::KeyPoint>& keypoints, cv::Mat& img, cv::Mat& descriptors, string descriptorType) {
     // select appropriate descriptor
     cv::Ptr<cv::DescriptorExtractor> extractor;
     if (descriptorType.compare("BRISK") == 0) {
@@ -82,10 +83,14 @@ void descKeypoints(vector<cv::KeyPoint>& keypoints, cv::Mat& img, cv::Mat& descr
     double t = (double) cv::getTickCount();
     extractor->compute(img, keypoints, descriptors);
     t = ((double) cv::getTickCount() - t) / cv::getTickFrequency();
-    cout << descriptorType << " descriptor extraction in " << 1000 * t / 1.0 << " ms" << endl;
+    t = 1000 * t / 1.0;
+    cout << descriptorType << " descriptor extraction in " << t << " ms" << endl;
+
+    return t;
 }
 
-void detKeypointsHarris(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis) {
+// returns the keypoint detection time
+double detKeypointsHarris(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis) {
     // Detector parameters
     int blockSize = 2;     // for every pixel, a blockSize × blockSize neighborhood is considered
     int apertureSize = 3;  // aperture parameter for Sobel operator (must be odd)
@@ -95,6 +100,7 @@ void detKeypointsHarris(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis
     // Detect Harris corners and normalize output
     cv::Mat dst, dst_norm, dst_norm_scaled;
     dst = cv::Mat::zeros(img.size(), CV_32FC1);
+    double t = (double) cv::getTickCount();
     cv::cornerHarris(img, dst, blockSize, apertureSize, k, cv::BORDER_DEFAULT);
     cv::normalize(dst, dst_norm, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat());
     cv::convertScaleAbs(dst_norm, dst_norm_scaled);
@@ -139,6 +145,8 @@ void detKeypointsHarris(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis
             }
         }
     }
+    t = ((double) cv::getTickCount() - t) / cv::getTickFrequency();
+    t = 1000 * t / 1.0;
 
     if (bVis) {
         // show result
@@ -148,10 +156,12 @@ void detKeypointsHarris(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis
         cv::imshow("NMS", nmsImage);
         cv::waitKey(0);
     }
+    return t;
 }
 
 // Detect keyPoints in image using the traditional Shi-Thomasi detector
-void detKeypointsShiTomasi(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis) {
+// returns the keypoint detection time
+double detKeypointsShiTomasi(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool bVis) {
     // compute detector parameters based on image size
     int blockSize = 4;       //  size of an average block for computing a derivative covariation matrix over each pixel neighborhood
     double maxOverlap = 0.0; // max. permissible overlap between two features in %
@@ -175,7 +185,8 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool b
         keyPoints.push_back(newKeyPoint);
     }
     t = ((double) cv::getTickCount() - t) / cv::getTickFrequency();
-    cout << "Shi-Tomasi detection with n=" << keyPoints.size() << " keyPoints in " << 1000 * t / 1.0 << " ms" << endl;
+    t = 1000 * t / 1.0;
+    cout << "Shi-Tomasi detection with n=" << keyPoints.size() << " keyPoints in " << t << " ms" << endl;
 
     // visualize results
     if (bVis) {
@@ -186,16 +197,20 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint>& keyPoints, cv::Mat& img, bool b
         imshow(windowName, visImage);
         cv::waitKey(0);
     }
+    return t;
 }
 
 // implements one of the following keypoint detectors: FAST, BRISK, ORB, AKAZE, SIFT
-void
+// returns the keypoint detection time
+double
 detKeypointsModern(std::vector<cv::KeyPoint>& keyPoints, cv::Mat& img, std::string detectorType, bool bVis) {
     cv::Ptr<cv::FeatureDetector> keyPointDetector;
     if (detectorType.compare("FAST") == 0) {
         int threshold = 50;
+        double t = (double) cv::getTickCount();
         cv::FAST(img, keyPoints, threshold);
-        return;
+        t = ((double) cv::getTickCount() - t) / cv::getTickFrequency();
+        return t;
     } else if (detectorType.compare("BRISK") == 0) {
         keyPointDetector = cv::BRISK::create();
     } else if (detectorType.compare("ORB") == 0) {
@@ -208,7 +223,12 @@ detKeypointsModern(std::vector<cv::KeyPoint>& keyPoints, cv::Mat& img, std::stri
         std::cout << "Detector type not supported" << std::endl;
         exit(1);
     }
+    double t = (double) cv::getTickCount();
     keyPointDetector->detect(img, keyPoints);
+    t = ((double) cv::getTickCount() - t) / cv::getTickFrequency();
+    t = 1000 * t / 1.0;
+
+    return t;
 }
 
 
